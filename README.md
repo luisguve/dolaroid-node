@@ -12,6 +12,8 @@ Method: **GET**
 
 credentials: include
 
+Example: `curl localhost:8000 -b cookie.txt`
+
 ## Response for user not logged in:
 ```json
 {
@@ -45,10 +47,12 @@ credentials: include
 ## Body:
 ```json
 {
-  "username": "username",
-  "password": "password"
+  "username": "John",
+  "password": "qwerty"
 }
 ```
+
+Example: `curl localhost:8000/login -H "Content-type:application/json" -b cookie.txt -c cookie.txt -d {\"username\":\"John\",\"password\":\"qwerty\"}`
 
 ## Response for successful login:
 ```json
@@ -86,10 +90,12 @@ credentials: include
 ## Body:
 ```json
 {
-  "username": "username",
-  "password": "password"
+  "username": "John",
+  "password": "qwerty"
 }
 ```
+
+Example: `curl localhost:8000/signup -H "Content-type:application/json" -b cookie.txt -c cookie.txt -d {\"username\":\"John\",\"password\":\"qwerty\"}`
 
 Response for successful signup:
 ```json
@@ -118,11 +124,13 @@ credentials: include
 
 ## body: empty
 
+Example: `curl localhost:8000/logout -b cookie.txt -c cookie.txt -X POST`
+
 Response for successful logout: 200 OK
 
 Error responses:
 
-- No session cookie or successful logout response:
+- No session cookie or successful logout response.
 
 # Submit coords "/location"
 
@@ -139,6 +147,9 @@ credentials: include
   "longt": "-66.58973"
 }
 ```
+
+Example: `curl localhost:8000/location -H "Content-type:application/json" -b cookie.txt -c cookie.txt -d {\"latt\":\"6.42375\",\"longt\":\"-66.58973\"}`
+
 Error response:
 
 Sent empty or invalid coords: status 400 bad request.
@@ -155,7 +166,8 @@ credentials: include
 - **value** denomination
 - **series** series year
 
-Example: `http://localhost:8000/review?sn=44SOMETHING12&value=100&series=2013`
+Example: 
+`curl "localhost:8000/review?sn=44SOMETHING12&value=100&series=2013" -b cookie.txt`
 
 ## Full response
 
@@ -167,10 +179,10 @@ If the user is logged in, it returns a full response:
     "value": "100",
     "series": "2013"
   },
-  "goodReviews": 0,
-  "badReviews": 0,
-  "avgRating": 0.0,
-  "defects": [],
+  "goodReviews": 2,
+  "badReviews": 2,
+  "avgRating": 5.0,
+  "defects": ["ft-3d-ribbon", "ft-watermark"],
   "userReviews": {
     "goodReviews": [
       {
@@ -178,13 +190,9 @@ If the user is logged in, it returns a full response:
         "date": "js date",
         "comment": "comment",
         "rating": 5,
-        "defects": [],
         "location": {
           "latt": "6.42375",
-          "longt": "-66.58973",
-          "city": "city",
-          "region": "region",
-          "country": "country"
+          "longt": "-66.58973"
         }
       }
     ],
@@ -193,14 +201,10 @@ If the user is logged in, it returns a full response:
         "userId": "user-id",
         "date": "js date",
         "comment": "comment",
-        "rating": 0,
         "defects": ["ft-3d-ribbon", "ft-watermark"],
         "location": {
           "latt": "6.42375",
-          "longt": "-66.58973",
-          "city": "city",
-          "region": "region",
-          "country": "country"
+          "longt": "-66.58973"
         }
       }
     ]
@@ -212,13 +216,9 @@ If the user is logged in, it returns a full response:
         "date": "js date",
         "comment": "comment",
         "rating": 5,
-        "defects": [],
         "location": {
           "latt": "6.42375",
-          "longt": "-66.58973",
-          "city": "city",
-          "region": "region",
-          "country": "country"
+          "longt": "-66.58973"
         }
       }
     ],
@@ -227,14 +227,10 @@ If the user is logged in, it returns a full response:
         "userId": "user-id",
         "date": "js date",
         "comment": "comment",
-        "rating": 0,
         "defects": ["ft-3d-ribbon", "ft-watermark"],
         "location": {
           "latt": "6.42375",
-          "longt": "-66.58973",
-          "city": "city",
-          "region": "region",
-          "country": "country"
+          "longt": "-66.58973"
         }
       }
     ]
@@ -262,7 +258,7 @@ If the user is logged in, it returns a full response:
 
 ## Basic response
 
-If the user is not logged in, this is what the response looks like
+If the user is not logged in, this is what the response looks like:
 ```json
 {
   "billInfo": {
@@ -273,6 +269,13 @@ If the user is not logged in, this is what the response looks like
   "goodReviews": 0,
   "badReviews": 0,
   "avgRating": 0.0
+}
+```
+
+If the bill does not have reviews, it returns 404 and the following body:
+```json
+{
+  "msg": "Review not found"
 }
 ```
 
@@ -304,9 +307,12 @@ credentials: include
       "subject": "details subject",
       "notes": "private notes"
     }
-  }
+  },
+  "typeOfReview": "Good review/Bad review"
 }
 ```
+
+Example: `curl localhost:8000/review -H "Content-type:application/json" -b cookie.txt -d {\"\":\"\",\"\":\"\"\"\":\"\",\"\":\"\"\"\":\"\",\"\":\"\"\"\":\"\",\"\":\"\"}`
 
 `defects` is an array of strings, in case of a bad review.
 
