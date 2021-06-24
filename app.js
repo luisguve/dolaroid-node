@@ -28,7 +28,7 @@ app.use(cookieSession({
 }))
 
 // Routes
-app.use("/", [auth/*, review*/])
+app.use("/", [auth, review])
 
 app.use((req, res) => res.status(404).send("Route does not exist"))
 app.use(errorHandlerMiddleware)
