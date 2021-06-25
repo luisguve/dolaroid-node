@@ -45,8 +45,10 @@ const postReview = asyncWrapper(async (req, res, next) => {
   if (!typeOfReview) return res.status(400).send("Undefined type of review")
 
   const { serialNumber:sn, value, series } = billInfo
-  const snTrim = sn.trim()
+  const snTrim = sn.replace(/\s/g, "")
   const billID = `${snTrim}-${value}-${series}`
+
+  billInfo.serialNumber = snTrim
 
   review.userId = session.user.userId
   review.location = session.location
@@ -210,7 +212,7 @@ const getReview = asyncWrapper(async (req, res, next) => {
   if (!series) return res.status(400).send("Undefined series")
 
   // Remove whitespaces from serial number.
-  const snTrim = sn.trim()
+  const snTrim = sn.replace(/\s/g, "")
 
   // Build _id
   const billID = `${snTrim}-${value}-${series}`
@@ -220,32 +222,86 @@ const getReview = asyncWrapper(async (req, res, next) => {
   if (!fullReview) {
     return next(ErrReviewNotFound)
   }
-  const good = fullReview.userReviews.goodReviews +
-    fullReview.businessReviews.goodReviews
-  const bad = fullReview.userReviews.badReviews +
-    fullReview.businessReviews.badReviews
-
   // Isn't the user logged in?
   if (!req.session.isLoggedIn) {
     // Send a basic review
-    return res.json({
-      billInfo,
-      goodReviews: good,
-      badReviews: bad,
-      avgRating: fullReview.avgRating
-    })
+    return res.json(formatReview({billInfo, fullReview, format: "basic"}))
   }
 
   // Try to fetch details
   const detailsID = `${req.session.user.userId}-${billID}`
   const fullDetails = await Details.findOne({_id: detailsID})
-  return res.json({
-    billInfo,
-    ...fullReview,
-    details: fullDetails.details
-  })
+  return res.json(formatReview({billInfo, fullReview, fullDetails, format: "full"}))
 })
 
+// Format review stored in mongo to be sent to client as JSON.
+// The format field can be either "full" or "basic".
+const formatReview = ({billInfo, fullReview, fullDetails, format}) => {
+
+  const formatBasicReview = r => {
+    const { date, comment, location, userId } = r
+    return {
+      date,
+      comment,
+      location,
+      userId
+    }
+  }
+  const formatGoodReviews = reviews => {
+    return reviews.map(r => ({
+      ...formatBasicReview(r),
+      rating: r.rating
+    }))
+  }
+  const formatBadReviews = reviews => {
+    return reviews.map(r => ({
+      ...formatBasicReview(r),
+      defects: r.defects
+    }))
+  }
+
+  const good = fullReview.userReviews.goodReviews.length +
+    fullReview.businessReviews.goodReviews.length
+  const bad = fullReview.userReviews.badReviews.length +
+    fullReview.businessReviews.badReviews.length
+
+  switch (format) {
+    case "full":
+    return {
+      billInfo,
+      goodReviews: good,
+      badReviews: bad,
+      avgRating: fullReview.avgRating,
+      defects: fullReview.defects,
+      userReviews: {
+        goodReviews: formatGoodReviews(fullReview.userReviews.goodReviews),
+        badReviews: formatBadReviews(fullReview.userReviews.badReviews)
+      },
+      businessReviews: {
+        goodReviews: formatGoodReviews(fullReview.businessReviews.goodReviews),
+        badReviews: formatBadReviews(fullReview.businessReviews.badReviews)
+      },
+      details: fullDetails ? fullDetails.details : null
+    }
+    break
+    case "basic":
+    return {
+      billInfo,
+      goodReviews: good,
+      badReviews: bad,
+      avgRating: fullReview.avgRating
+    }
+    break
+    default:
+    return null
+  }
+}
+
+// 1. Ensure the user is not submitting more than one review per bill.
+// 2. Update defects; if the defect's not there, append it.
+// 3. Append review to this bill's list of bad reviews.
+// The promise resolves the modified fullReview and the list of both bad and
+// good reviews in targetReviews.
 const updateBadReviews = (fullReview, targetReviews, review) => {
   return new Promise((resolve, reject) => {
     const fullReviewCopy = Object.assign({}, fullReview)
@@ -281,6 +337,11 @@ const updateBadReviews = (fullReview, targetReviews, review) => {
   })
 }
 
+// 1. Ensure the user is not submitting more than one review per bill.
+// 2. Update ratings and avg rating in fullReview.
+// 3. Append review to this bill's list of good reviews.
+// The promise resolves the modified fullReview and the list of both bad and
+// good reviews in targetReviews.
 const updateGoodReviews = (fullReview, targetReviews, review) => {
   return new Promise((resolve,reject) => {
     const fullReviewCopy = Object.assign({}, fullReview)
