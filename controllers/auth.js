@@ -38,6 +38,7 @@ const login = asyncWrapper(async (req, res, next) => {
     }
     req.session = {
       ...req.session,
+      isLoggedIn: true,
       user: {...newSess}
     }
 
@@ -78,6 +79,7 @@ const signup = asyncWrapper(async (req, res, next) => {
   }
   req.session = {
     ...req.session,
+    isLoggedIn: true,
     user: {...newSess}
   }
 
