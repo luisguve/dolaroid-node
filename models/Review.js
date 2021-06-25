@@ -1,63 +1,63 @@
 const { Schema, model } = require("mongoose")
 
-const GoodReviewSchema = new Schema({
+const BaseReviewSchema = new Schema({
   date: {
     type: String,
     required: true
   },
   comment: String,
+  userId: {
+    type: String,
+    required: true
+  },
+  location: {
+    latt: {type: String, required: true},
+    longt: {type: String, required: true}
+  }
+})
+
+const GoodReviewSchema = new Schema()
+GoodReviewSchema.add(BaseReviewSchema).add({
   rating: {
     type: Number,
     required: true
   }
 })
 
-const BadReviewSchema = new Schema({
-  date: {
-    type: String,
-    required: true
-  },
-  comment: String,
+const BadReviewSchema = new Schema()
+BadReviewSchema.add(BaseReviewSchema).add({
   defects: {
     type: [String],
     required: true
   }
 })
-/*
-const SingleReviewSchema = new Schema({
-  date: {
+
+const BillSchema = new Schema({
+  serialNumber: {
     type: String,
-    required: true
+    required: true,
+    trim: true,
+    maxlength: [13, "Serial number can not be more than 13 characters"],
   },
-  comment: String,
-  rating: Number,
-  defects: [String]
+  value: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 100
+  },
+  series: {
+    type: String,
+    required: true,
+    trim: true
+  }
 })
-*/
+
 const ReviewSchema = new Schema({
   _id: {
     type: String,
     required: true
   },
-  billInfo: {
-    serialNumber: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: [12, "Serial number can not be more than 12 characters"],
-    },
-    value: {
-      type: Number,
-      required: true,
-      min: 1,
-      max: 100
-    },
-    series: {
-      type: String,
-      required: true,
-      trim: true
-    }
-  },
+  billInfo: BillSchema,
   userReviews: {
     goodReviews: [GoodReviewSchema],
     badReviews: [BadReviewSchema]
