@@ -217,21 +217,23 @@ const getReview = asyncWrapper(async (req, res, next) => {
   // Build _id
   const billID = `${snTrim}-${value}-${series}`
 
+  const format = req.session.isLoggedIn ? "full" : "basic"
+
   // Query reviews
   const fullReview = await Review.findOne({_id: billID})
   if (!fullReview) {
-    return next(ErrReviewNotFound)
+    // There are no reviews for this bill
+    return res.status(404).json(formatReview({billInfo, fullReview: null, format}))
   }
+  let fullDetails = null
   // Isn't the user logged in?
-  if (!req.session.isLoggedIn) {
-    // Send a basic review
-    return res.json(formatReview({billInfo, fullReview, format: "basic"}))
+  if (req.session.isLoggedIn) {
+    // Try to fetch details
+    const detailsID = `${req.session.user.userId}-${billID}`
+    fullDetails = await Details.findOne({_id: detailsID})
   }
 
-  // Try to fetch details
-  const detailsID = `${req.session.user.userId}-${billID}`
-  const fullDetails = await Details.findOne({_id: detailsID})
-  return res.json(formatReview({billInfo, fullReview, fullDetails, format: "full"}))
+  return res.json(formatReview({billInfo, fullReview, fullDetails, format}))
 })
 
 // Format review stored in mongo to be sent to client as JSON.
@@ -260,6 +262,38 @@ const formatReview = ({billInfo, fullReview, fullDetails, format}) => {
     }))
   }
 
+  if (!fullReview) {
+    // Review not found
+    switch (format) {
+      case "full":
+      return {
+        billInfo,
+        goodReviews: 0,
+        badReviews: 0,
+        avgRating: 0,
+        userReviews: {
+          goodReviews: null,
+          badReviews: null,
+        },
+        businessReviews: {
+          goodReviews: null,
+          badReviews: null,
+        },
+        defects: null
+      }
+      case "basic":
+      return {
+        billInfo,
+        goodReviews: 0,
+        badReviews: 0,
+        avgRating: 0,
+        defects: null
+      }
+      default:
+      return null
+    }
+  }
+
   const good = fullReview.userReviews.goodReviews.length +
     fullReview.businessReviews.goodReviews.length
   const bad = fullReview.userReviews.badReviews.length +
@@ -283,7 +317,6 @@ const formatReview = ({billInfo, fullReview, fullDetails, format}) => {
       },
       details: fullDetails ? fullDetails.details : null
     }
-    break
     case "basic":
     return {
       billInfo,
@@ -291,7 +324,6 @@ const formatReview = ({billInfo, fullReview, fullDetails, format}) => {
       badReviews: bad,
       avgRating: fullReview.avgRating
     }
-    break
     default:
     return null
   }
