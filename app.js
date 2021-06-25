@@ -19,7 +19,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 
 app.use(cors({
-  origin: ["http://localhost:5000", "https://dolaroid.netlify.app"],
+  origin: ["http://localhost:3000", "https://dolaroid.netlify.app"],
   credentials: true
 }))
 app.use(cookieSession({
