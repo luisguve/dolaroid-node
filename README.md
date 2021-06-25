@@ -297,7 +297,7 @@ credentials: include
     "date": "js date",
     "comment": "comment",
     "rating": 0,
-    "defects": [],
+    "defects": []
   },
   "details": {
     "typeOfDetail": "incoming/outgoing",
@@ -312,7 +312,7 @@ credentials: include
 }
 ```
 
-Example: `curl localhost:8000/review -H "Content-type:application/json" -b cookie.txt -d {\"\":\"\",\"\":\"\"\"\":\"\",\"\":\"\"\"\":\"\",\"\":\"\"\"\":\"\",\"\":\"\"}`
+Example: `curl localhost:8000/review -H "Content-type:application/json" -b cookie.txt -d "{\"billInfo\":{\"serialNumber\":\"44 SOMETHING 12\",\"value\": 100,\"series\":\"2013\"},\"review\":{\"date\":\"25-Jun-2021\",\"comment\":\"\",\"rating\":5,\"defects\":[]},\"typeOfReview\":\"Good review\"}"`
 
 `defects` is an array of strings, in case of a bad review.
 
@@ -322,7 +322,7 @@ Example: `curl localhost:8000/review -H "Content-type:application/json" -b cooki
 
 Response for successful post: 200 OK
 
-Error responses:.
+Error responses:
 
 - The session cookie does not have the coords: "Location required"
 - The user is not logged in: 401 Unauthorized
