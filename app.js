@@ -1,9 +1,12 @@
 const app = require("express")()
 const connectDB = require("./db/connect")
-const env = require("dotenv").config()
-if (env.error) {
-  throw env.error
+if (!process.env) {
+  let envErr = require("dotenv").config().error
+  if (envErr) {
+    throw envErr
+  }
 }
+const env = process.env
 // Middleware
 const cors = require("cors")
 const cookieSession = require("cookie-session")
@@ -22,9 +25,13 @@ app.use(cors({
   origin: ["http://localhost:3000", "https://dolaroid.netlify.app"],
   credentials: true
 }))
+const sessKey = env.SESS_KEY
+if (!sessKey) {
+  throw "Must provide session key"
+}
 app.use(cookieSession({
   name: "sess",
-  secret: process.env.SESS_KEY
+  secret: sessKey
 }))
 
 // Routes
@@ -33,11 +40,11 @@ app.use("/", [auth, review])
 app.use((req, res) => res.status(404).send("Route does not exist"))
 app.use(errorHandlerMiddleware)
 
-const PORT = process.env.PORT || 8000
+const PORT = env.PORT || 8000
 
 const start = async () => {
   try {
-    await connectDB(process.env.MONGO_URI)
+    await connectDB(env.MONGO_URI)
     app.listen(PORT, () => console.log(`listening on port ${PORT}`))
   } catch (err) {
     console.log(err)
