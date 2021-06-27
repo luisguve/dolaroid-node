@@ -66,7 +66,10 @@ const ReviewSchema = new Schema({
     goodReviews: [GoodReviewSchema],
     badReviews: [BadReviewSchema]
   },
-  defects: [String],
+  defects: {
+    type: [String],
+    default: []
+  },
   ratings: Number,
   avgRating: Number
 })
