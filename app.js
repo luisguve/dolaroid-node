@@ -1,6 +1,6 @@
 const app = require("express")()
 const connectDB = require("./db/connect")
-if (!process.env) {
+if (!process.env.SESS_KEY) {
   let envErr = require("dotenv").config().error
   if (envErr) {
     throw envErr
