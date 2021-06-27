@@ -144,59 +144,6 @@ const postReview = asyncWrapper(async (req, res, next) => {
     })
     console.log("Updated good reviews: ", JSON.stringify(result.userReviews.goodReviews))
   }
-  const { details } = req.body
-  if (details) {
-    const data = details.detailsData
-    const detailsID = `${review.userId}-${billID}`
-    let fullDetails = await Details.findOne({_id: detailsID})
-    let storedDetails = []
-    if (fullDetails) {
-      storedDetails = fullDetails.details
-    }
-    switch (details.typeOfDetail) {
-      case INCOMING_BILL:
-      storedDetails.push({
-        in: {
-          ...data
-        }
-      })
-      break
-      case OUTGOING_BILL:
-      // If there are no details or if the last detail pair already has
-      // an outgoing detail, then create a new detail pair.
-      const last = storedDetails.length - 1
-      if (!storedDetails.length || storedDetails[last].out) {
-        storedDetails.push({
-          out: {
-            ...data
-          }
-        })
-      } else {
-        storedDetails[last].out = {...data}
-      }
-      break
-      default:
-      return next(ErrInvalidDetail)
-    }
-    fullDetails = fullDetails ?
-      await Details.findOneAndUpdate(
-        {
-          _id: detailsID
-        },
-        {
-          details: storedDetails
-        },
-        {
-          new: true,
-          runValidators: true
-        }
-      )
-      :
-      await Details.create({_id: detailsID, details: storedDetails})
-    if (!fullDetails) {
-      return next(createCustomError("Could not save details", 500))
-    }
-  }
   res.status(201).end()
 })
 
@@ -226,15 +173,8 @@ const getReview = asyncWrapper(async (req, res, next) => {
     // There are no reviews for this bill
     return res.status(404).json(formatReview({billInfo, fullReview: null, format}))
   }
-  let fullDetails = null
-  // Isn't the user logged in?
-  if (req.session.isLoggedIn) {
-    // Try to fetch details
-    const detailsID = `${req.session.user.userId}-${billID}`
-    fullDetails = await Details.findOne({_id: detailsID})
-  }
 
-  return res.json(formatReview({billInfo, fullReview, fullDetails, format}))
+  return res.json(formatReview({billInfo, fullReview, format}))
 })
 
 // Format review stored in mongo to be sent to client as JSON.
