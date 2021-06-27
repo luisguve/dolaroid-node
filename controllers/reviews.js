@@ -138,10 +138,11 @@ const postReview = asyncWrapper(async (req, res, next) => {
       ...fullReview
     })
   } else {
-    await Review.findOneAndUpdate({_id: billID}, fullReview, {
+    const result = await Review.findOneAndUpdate({_id: billID}, fullReview, {
       new: true,
       runValidators: true
     })
+    console.log("Updated good reviews: ", JSON.stringify(result.userReviews.goodReviews))
   }
   const { details } = req.body
   if (details) {
