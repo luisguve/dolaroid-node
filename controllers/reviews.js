@@ -68,7 +68,7 @@ const postReview = asyncWrapper(async (req, res, next) => {
         goodReviews: [],
         badReviews: []
       },
-      defects: [],
+      defects: null,
       ratings: 0,
       avgRating: 0.0
     }
@@ -142,7 +142,6 @@ const postReview = asyncWrapper(async (req, res, next) => {
       new: true,
       runValidators: true
     })
-    console.log("Updated good reviews: ", JSON.stringify(result.userReviews.goodReviews))
   }
   res.status(201).end()
 })
@@ -277,7 +276,7 @@ const formatReview = ({billInfo, fullReview, fullDetails, format}) => {
 // good reviews in targetReviews.
 const updateBadReviews = (fullReview, targetReviews, review) => {
   return new Promise((resolve, reject) => {
-    const fullReviewCopy = Object.assign({}, fullReview)
+    const fullReviewCopy = JSON.parse(JSON.stringify(fullReview))
     const reviews = [...targetReviews.badReviews]
     // Allow only 1 review per user
     for (storedReview of reviews) {
@@ -295,7 +294,11 @@ const updateBadReviews = (fullReview, targetReviews, review) => {
         }
       }
       if (!found) {
-        fullReviewCopy.defects.push(defect)
+        if (!fullReviewCopy.defects) {
+          fullReviewCopy.defects = [defect]
+        } else {
+          fullReviewCopy.defects.push(defect)
+        }
       }
     }
     // Push review to this bill's list of bad reviews
@@ -317,7 +320,7 @@ const updateBadReviews = (fullReview, targetReviews, review) => {
 // good reviews in targetReviews.
 const updateGoodReviews = (fullReview, targetReviews, review) => {
   return new Promise((resolve,reject) => {
-    const fullReviewCopy = Object.assign({}, fullReview)
+    const fullReviewCopy = JSON.parse(JSON.stringify(fullReview))
     const reviews = [...targetReviews.goodReviews]
     // Allow only 1 review per user
     for (storedReview of reviews) {
