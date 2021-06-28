@@ -286,7 +286,7 @@ const updateBadReviews = (fullReview, targetReviews, review) => {
     }
     // Update defects; if the defect's not there, append it
     if (!fullReviewCopy.defects) {
-      fullReviewCopy.defects = [defect]
+      fullReviewCopy.defects = [...review.defects]
     } else {
       for (defect of review.defects) {
         let found = false
