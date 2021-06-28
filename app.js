@@ -35,6 +35,7 @@ app.use(cookieSession({
   sameSite: "none",
   secure: true
 }))
+app.set("trust proxy", 1) // For cookies
 
 // Routes
 app.use("/", [auth, review])
