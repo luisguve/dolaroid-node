@@ -285,19 +285,19 @@ const updateBadReviews = (fullReview, targetReviews, review) => {
       }
     }
     // Update defects; if the defect's not there, append it
-    for (defect of review.defects) {
-      let found = false
-      for (storedDefect of fullReview.defects) {
-        if (defect === storedDefect) {
-          found = true
-          break
+    if (!fullReviewCopy.defects) {
+      fullReviewCopy.defects = [defect]
+    } else {
+      for (defect of review.defects) {
+        let found = false
+        for (storedDefect of fullReview.defects) {
+          if (defect === storedDefect) {
+            found = true
+            break
+          }
         }
-      }
-      if (!found) {
-        if (!fullReviewCopy.defects) {
-          fullReviewCopy.defects = [defect]
-        } else {
-          fullReviewCopy.defects.push(defect)
+        if (!found) {
+            fullReviewCopy.defects.push(defect)
         }
       }
     }
