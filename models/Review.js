@@ -66,12 +66,9 @@ const ReviewSchema = new Schema({
     goodReviews: [GoodReviewSchema],
     badReviews: [BadReviewSchema]
   },
-  defects: {
-    type: [String],
-    default: []
-  },
-  ratings: Number,
-  avgRating: Number
+  defects: [String],
+  ratings: {type: Number, default: 0},
+  avgRating: {type: Number, default: 0}
 })
 
 module.exports = model("Review", ReviewSchema)
