@@ -31,7 +31,8 @@ if (!sessKey) {
 }
 app.use(cookieSession({
   name: "sess",
-  secret: sessKey
+  secret: sessKey,
+  sameSite: "none"
 }))
 
 // Routes
